@@ -6,6 +6,7 @@ import (
 )
 func main()  {
 	port:= config.PORT
+	config.ConnectMongoDB()
 	router := gin.New()
 	router.Run(":" + port)
 }
