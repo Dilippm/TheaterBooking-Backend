@@ -19,6 +19,7 @@ var input struct {
 	Email          string `json:"email"`
 	Password       string `json:"password"`
 	ConfirmPassword string `json:"confirmPassword"`
+	UserImage 		string 	`json:"UserImage"`
 }
 // funciton to register a user
 func SignUp(c *gin.Context) {
@@ -94,4 +95,41 @@ func UserLogin(c *gin.Context) {
 		"message": "Login successful",
 		"token":   token,
 		"user":    user})
+}
+
+func UserUpdate(c *gin.Context){
+// Bind the JSON input to loginData struct
+if err := c.ShouldBindJSON(&input); err != nil {
+	c.Error(fmt.Errorf("failed to bind request body to user model: %v", err))
+	c.AbortWithStatus(http.StatusBadRequest) // Bad Request is more appropriate for validation errors
+	return
+}
+// Find the user by email
+user, err := queries.FindUserByEmail(input.Email)
+
+if err != nil {
+	if err.Error() == fmt.Sprintf("user with email %s not found", input.Email) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not Found"})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	}
+	return
+}
+// Create a new user struct
+updateUser := schemas.User{
+	Username: input.Username,
+	Email:    input.Email,
+	Password: user.Password,
+	UserImage: input.UserImage,
+}
+
+// Try to find or create the user
+result, err := queries.UpdateUser(updateUser)
+if err != nil {
+	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	return
+}
+
+// Return success message
+c.JSON(http.StatusCreated, gin.H{"message": "User Profile Updated Successfully", "result": result})
 }

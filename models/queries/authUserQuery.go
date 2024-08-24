@@ -70,3 +70,25 @@ func FindUserByEmail(email string) (schemas.User, error) {
 
 	return user, nil
 }
+func UpdateUser(user schemas.User) (*mongo.UpdateResult,error){
+	collection := GetUserCollection()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+
+// Create a filter to find the document to update (by userID)
+filter := bson.M{"email": user.Email} // Assuming `user.ID` is the unique identifier
+
+// Create an update document with the fields to be updated
+update := bson.M{
+	"$set": user, // This will update all fields in the `user` struct
+}
+
+// Perform the update operation
+updateResult, err := collection.UpdateOne(ctx, filter, update)
+if err != nil {
+	return nil, fmt.Errorf("failed to update user: %v", err)
+}
+
+return updateResult, nil
+}
