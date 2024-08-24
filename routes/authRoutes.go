@@ -7,8 +7,9 @@ import (
 
 // Authroutes sets up authentication-related routes
 func Authroutes(routerGroup *gin.RouterGroup) {
-	authGroup := routerGroup.Group("/auth")
+	authGroup := routerGroup.Group("/auth/user")
 	{
-		authGroup.GET("/test", controllers.TestSample) // Pass the handler function reference directly
+		authGroup.GET("/test", controllers.TestSample) 
+		authGroup.POST("/register", controllers.SignUp) 
 	}
-}
+	}
