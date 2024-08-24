@@ -11,5 +11,6 @@ func Authroutes(routerGroup *gin.RouterGroup) {
 	{
 		authGroup.GET("/test", controllers.TestSample) 
 		authGroup.POST("/register", controllers.SignUp) 
+		authGroup.POST("/login",controllers.UserLogin)
 	}
 	}

@@ -24,5 +24,5 @@ func init() {
 	// Set environment variables
 	PORT = os.Getenv("PORT")
 	MONGO_URI = os.Getenv("MONGODB_URI")
-	// JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
+	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 }

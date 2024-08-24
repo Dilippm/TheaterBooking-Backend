@@ -9,7 +9,6 @@ type User struct {
 	Username    string             `bson:"username" json:"username"`
 	Email       string             `bson:"email" json:"email"`
 	Password    string             `bson:"password" json:"password"`
-	ConfirmPassword    string             `bson:"confirmpassword" json:"confirmpassword"`
 	UserImage   string             `bson:"userimage" json:"userimage"`
 	Reservation []string           `bson:"reservation" json:"reservation"`  
 	Bookings    []string           `bson:"bookings" json:"bookings"`        
