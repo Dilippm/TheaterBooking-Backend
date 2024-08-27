@@ -59,3 +59,75 @@ if err != nil {
 c.JSON(http.StatusCreated, gin.H{"message": "Theater Added Successfully", "result": result.InsertedID})
 
 }
+
+// function to get all theaters for a owner id
+func GetAllOnwertheaters(c *gin.Context){
+	ownerID := c.Param("id")
+	theaters, err := queries.GetAllOnwertheater(ownerID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch theaters"})
+		return
+	}
+
+	c.JSON(http.StatusOK, theaters)
+}
+
+// function to update a theater by id
+func UpdateTheater(c *gin.Context) {
+	theaterId := c.Param("id")
+
+	// Bind the JSON input to input struct
+	var input schemas.Theater
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.Error(fmt.Errorf("failed to bind request body to theater model: %v", err))
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	// Find the theater by ID
+	theater, err := queries.FindTheaterById(theaterId)
+	if err != nil {
+		if err.Error() == fmt.Sprintf("theater with id %s not found", theaterId) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "theater not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		}
+		return
+	}
+
+	// Create an update struct
+	updateTheater := schemas.Theater{
+		TheaterName:   input.TheaterName,
+		OwnerID:       theater.OwnerID, // Assuming you don’t want to change the OwnerID
+		Place:         input.Place,
+		State:         input.State,
+		Movie:         input.Movie,
+		Rows:          input.Rows,
+		Columns:       input.Columns,
+		Seats:         input.Seats,
+		Price:         input.Price,
+		ShowTimings:   input.ShowTimings,
+	}
+
+	// Try to update the theater
+	result, err := queries.UpdateTheaterDetail(updateTheater, theaterId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Return success message
+	c.JSON(http.StatusOK, gin.H{"message": "Theater updated successfully", "result": result})
+}
+
+// function to get  a single theater details
+func GetSpecificTheaterByid(c *gin.Context){
+	id := c.Param("id")
+	theaters, err := queries.FindTheaterById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch theater"})
+		return
+	}
+
+	c.JSON(http.StatusOK, theaters)
+}

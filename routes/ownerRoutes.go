@@ -9,5 +9,8 @@ func Ownerroutes(routerGroup *gin.RouterGroup){
 	ownerGroup:= routerGroup.Group("/owner")
 	{
 		ownerGroup.POST("/add_theater",middlewares.JwtTokenVerify(),controllers.Addtheater)
+		ownerGroup.GET("/get_theaters_owner/:id",middlewares.JwtTokenVerify(),controllers.GetAllOnwertheaters)
+		ownerGroup.GET("/get_theater_details/:id",middlewares.JwtTokenVerify(),controllers.GetSpecificTheaterByid)
+		ownerGroup.PUT("/update_theater/:id",middlewares.JwtTokenVerify(),controllers.UpdateTheater)
 	}
 }
