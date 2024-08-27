@@ -13,6 +13,6 @@ func Authroutes(routerGroup *gin.RouterGroup) {
 		authGroup.GET("/test", controllers.TestSample) 
 		authGroup.POST("/register", controllers.SignUp) 
 		authGroup.POST("/login",controllers.UserLogin)
-		authGroup.PUT("/update_profile",middlewares.JwtTokenVerify(),controllers.UserUpdate)
+		authGroup.PUT("/update_profile/:id",middlewares.JwtTokenVerify(),controllers.UserUpdate)
 	}
 	}

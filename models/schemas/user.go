@@ -11,5 +11,6 @@ type User struct {
 	Password    string             `bson:"password" json:"password"`
 	UserImage   string             `bson:"userimage" json:"userimage"`
 	Reservation []string           `bson:"reservation" json:"reservation"`  
-	Bookings    []string           `bson:"bookings" json:"bookings"`        
+	Bookings    []string           `bson:"bookings" json:"bookings"`
+	Role        string             `bson:"role" json:"role"`
 }

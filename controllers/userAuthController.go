@@ -20,6 +20,7 @@ var input struct {
 	Password       string `json:"password"`
 	ConfirmPassword string `json:"confirmPassword"`
 	UserImage 		string 	`json:"UserImage"`
+	Role			string	`json:"role"`
 }
 // funciton to register a user
 func SignUp(c *gin.Context) {
@@ -41,6 +42,7 @@ func SignUp(c *gin.Context) {
 		Username: input.Username,
 		Email:    input.Email,
 		Password: hashedPassword,
+		Role:input.Role,
 	}
 
 	// Try to find or create the user
@@ -98,6 +100,7 @@ func UserLogin(c *gin.Context) {
 }
 
 func UserUpdate(c *gin.Context){
+	userId := c.Param("id")
 // Bind the JSON input to loginData struct
 if err := c.ShouldBindJSON(&input); err != nil {
 	c.Error(fmt.Errorf("failed to bind request body to user model: %v", err))
@@ -105,10 +108,10 @@ if err := c.ShouldBindJSON(&input); err != nil {
 	return
 }
 // Find the user by email
-user, err := queries.FindUserByEmail(input.Email)
+user, err := queries.FindUserById(userId)
 
 if err != nil {
-	if err.Error() == fmt.Sprintf("user with email %s not found", input.Email) {
+	if err.Error() == fmt.Sprintf("user with id %s not found",userId) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not Found"})
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -121,10 +124,11 @@ updateUser := schemas.User{
 	Email:    input.Email,
 	Password: user.Password,
 	UserImage: input.UserImage,
+	Role:user.Role,
 }
 
 // Try to find or create the user
-result, err := queries.UpdateUser(updateUser)
+result, err := queries.UpdateUser(updateUser,userId)
 if err != nil {
 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	return

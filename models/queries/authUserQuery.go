@@ -9,6 +9,7 @@ import (
 	"github.com/dilippm92/bookingapplication/models/schemas"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // get user collection
@@ -70,25 +71,62 @@ func FindUserByEmail(email string) (schemas.User, error) {
 
 	return user, nil
 }
-func UpdateUser(user schemas.User) (*mongo.UpdateResult,error){
+
+func UpdateUser(user schemas.User, id string) (*mongo.UpdateResult, error) {
 	collection := GetUserCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Convert string ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
 
-// Create a filter to find the document to update (by userID)
-filter := bson.M{"email": user.Email} // Assuming `user.ID` is the unique identifier
+	// Create a filter to find the document to update (by userID)
+	filter := bson.M{"_id": objectID}
 
-// Create an update document with the fields to be updated
-update := bson.M{
-	"$set": user, // This will update all fields in the `user` struct
+	// Create an update document with the fields to be updated
+	update := bson.M{
+		"$set": bson.M{
+			"username":   user.Username,
+			"email":      user.Email,
+			"password":   user.Password,
+			"userimage":  user.UserImage,
+			"role":user.Role,
+		},
+	}
+
+	// Perform the update operation
+	updateResult, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %v", err)
+	}
+
+	return updateResult, nil
 }
 
-// Perform the update operation
-updateResult, err := collection.UpdateOne(ctx, filter, update)
+// getuser by email
+func FindUserById(id string) (schemas.User, error) {
+	collection := GetUserCollection()
+	var user schemas.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+// Convert string ID to ObjectID
+objectID, err := primitive.ObjectIDFromHex(id)
 if err != nil {
-	return nil, fmt.Errorf("failed to update user: %v", err)
+	return schemas.User{}, fmt.Errorf("invalid ID format: %v", err)
 }
+	err = collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Return a custom error message if no document is found
+			return schemas.User{}, fmt.Errorf("user with Id %s not found", id)
+		}
+		// Log and return the error if there is a database error
+		log.Printf("Failed to find user: %v", err)
+		return schemas.User{}, err
+	}
 
-return updateResult, nil
+	return user, nil
 }
