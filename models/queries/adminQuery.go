@@ -9,6 +9,7 @@ import (
 		"go.mongodb.org/mongo-driver/mongo"
 		"go.mongodb.org/mongo-driver/bson"
 		"go.mongodb.org/mongo-driver/bson/primitive"
+		 "go.mongodb.org/mongo-driver/mongo/options"
 	
 		
 	)
@@ -139,4 +140,49 @@ if err != nil {
 	}
 
 	return movie, nil
+}
+
+// get latest 5 movies
+
+func GetLatestMovies() ([]schemas.Movie, error) {
+	collection := GetMovieCollection()
+	var movies []schemas.Movie
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Define options for the query: sort by release date in descending order and limit to 5 results
+	findOptions := options.Find()
+	findOptions.SetSort(bson.D{{"releaseDate", -1}}) // Sort by releaseDate in descending order
+	findOptions.SetLimit(5)                          // Limit the results to 5
+
+	// Find the latest 5 movies
+	cursor, err := collection.Find(ctx, bson.M{}, findOptions)
+	if err != nil {
+		log.Printf("Failed to execute query: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Iterate over the cursor and decode each document into a Movie struct
+	for cursor.Next(ctx) {
+		var movie schemas.Movie
+		if err := cursor.Decode(&movie); err != nil {
+			log.Printf("Failed to decode movie: %v", err)
+			return nil, err
+		}
+		movies = append(movies, movie)
+	}
+
+	// Check for any errors during cursor iteration
+	if err := cursor.Err(); err != nil {
+		log.Printf("Cursor error: %v", err)
+		return nil, err
+	}
+
+	// If no movies were found, return a custom error
+	if len(movies) == 0 {
+		return nil, fmt.Errorf("no movies found")
+	}
+
+	return movies, nil
 }

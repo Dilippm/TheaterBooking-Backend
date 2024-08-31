@@ -16,7 +16,7 @@ var movieInput struct {
 	Description string             `bson:"description"`   
 	Language    string             `bson:"language"`       
 	ReleaseDate primitive.DateTime `bson:"releaseDate"`   
-	Revenue     string             `bson:"revenue"`       
+	    
 	Genre		string				`bson:"genre"`
 	Image 		string 				`bson:"image"`
 	TrailerId   string				`bson:"trailerId"`
@@ -38,7 +38,7 @@ movie:= schemas.Movie{
 	Description: movieInput.Description,
 	Language: movieInput.Language,
 	ReleaseDate: movieInput.ReleaseDate,
-	Revenue: movieInput.Revenue,
+	Revenue: "",
 	Genre: movieInput.Genre,
 	Image: movieInput.Image,
 	TrailerId: movieInput.TrailerId,
@@ -124,4 +124,16 @@ func GetMovieById(c *gin.Context){
 	}
 
 	c.JSON(http.StatusOK, movie)
+}
+
+// function to get all movies 
+func GetLatestMovies(c *gin.Context){
+	
+	movies, err := queries.GetLatestMovies()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch movies"})
+		return
+	}
+
+	c.JSON(http.StatusOK, movies)
 }
