@@ -16,6 +16,7 @@ var reservationInput struct {
     Price         string    `json:"price"`         // Price of the reservation
     Date          string    `json:"date"`          // Date of the reservation
     User          string    `json:"user"`          // User ID making the reservation
+	Movie		string		`json:"movie"`  
 }
 
 // function to add a new movie
@@ -36,6 +37,7 @@ func Addreservation(c *gin.Context) {
 Price: reservationInput.Price,
 		Date: reservationInput.Date,
 		User: reservationInput.User,
+		Movie: reservationInput.Movie,
 	}
 	result, err := queries.AddReservation(reservation)
 	if err != nil {
