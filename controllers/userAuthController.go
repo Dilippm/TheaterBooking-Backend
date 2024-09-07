@@ -137,3 +137,5 @@ if err != nil {
 // Return success message
 c.JSON(http.StatusCreated, gin.H{"message": "User Profile Updated Successfully", "result": result})
 }
+
+

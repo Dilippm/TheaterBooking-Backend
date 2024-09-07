@@ -73,3 +73,42 @@ func GetAllUserBookings(user string)([]schemas.Booking,error){
 
 	return bookings, nil
 }
+
+func GetOwnerReport(theaterNames []string) ([]schemas.Booking,error){
+// Get the booking collection
+collection := GetBookingCollection()
+
+// Define a slice to hold the results
+var bookings []schemas.Booking
+
+// Create a context with a timeout
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+
+// Create a filter to match bookings for the given theater names
+filter := bson.M{"theater": bson.M{"$in": theaterNames}}
+
+// Perform the query
+cursor, err := collection.Find(ctx, filter)
+if err != nil {
+	return nil, err
+}
+defer cursor.Close(ctx)
+
+// Iterate through the cursor and decode each document
+for cursor.Next(ctx) {
+	var booking schemas.Booking
+	if err := cursor.Decode(&booking); err != nil {
+		return nil, err
+	}
+	bookings = append(bookings, booking)
+}
+
+// Check for errors from iterating over the cursor
+if err := cursor.Err(); err != nil {
+	return nil, err
+}
+
+// Return the results
+return bookings, nil
+}

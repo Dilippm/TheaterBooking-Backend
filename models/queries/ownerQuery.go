@@ -188,3 +188,24 @@ func GetTheatersByNamePlaceId(name, place, id string) ([]schemas.Theater, error)
 
 	return theaters, nil
 }
+
+
+func FindTheaterByName(name string) (schemas.Theater, error) {
+	collection := GetTheaterCollection()
+	var theater schemas.Theater
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := collection.FindOne(ctx, bson.M{"theaterName": name}).Decode(&theater)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Return a custom error message if no document is found
+			return schemas.Theater{}, fmt.Errorf("theater with Id %s not found", name)
+		}
+		// Log and return the error if there is a database error
+		log.Printf("Failed to find theater: %v", err)
+		return schemas.Theater{}, err
+	}
+
+	return theater, nil
+}

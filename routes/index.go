@@ -7,4 +7,5 @@ func MainRoutes(router *gin.Engine){
 	Ownerroutes(apiGroup)
 	Adminroutes(apiGroup)
 	Reservationroutes(apiGroup)
+	Reportroutes(apiGroup)
 }

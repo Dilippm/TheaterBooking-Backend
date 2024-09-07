@@ -87,7 +87,23 @@ Price: bookingInput.Price,
 	}
 	result, err := queries.AddBooking(booking)
 	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errorad": err.Error()})
+		return
+	}
+	_,err =queries.UpdateWallet(bookingInput.Price)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erroradmin": err.Error()})
+		return
+	}
+	theater,err :=queries.FindTheaterByName(bookingInput.Theater)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ownerIDStr := theater.OwnerID.Hex()
+	_,err = queries.UpdateWalletByUserId(ownerIDStr,bookingInput.Price)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errorowner": err.Error()})
 		return
 	}
 	// Return success message

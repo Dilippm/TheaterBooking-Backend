@@ -13,4 +13,5 @@ type User struct {
 	Reservation []string           `bson:"reservation" json:"reservation"`  
 	Bookings    []string           `bson:"bookings" json:"bookings"`
 	Role        string             `bson:"role" json:"role"`
+	Wallet      float64            `bson:"wallet" json:"wallet"`
 }
