@@ -143,3 +143,69 @@ if err != nil {
 
 	return theater, nil
 }
+
+func GetTheatersByNamePlaceId(name, place, id string) ([]schemas.Theater, error) {
+	collection := GetTheaterCollection()
+	var theaters []schemas.Theater
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Validate movie ID
+	if id == "" {
+		return nil, fmt.Errorf("movie ID cannot be empty")
+	}
+
+	// Construct the query based on the presence of name and place
+	query := bson.M{"movie": bson.M{"$regex": id, "$options": "i"}}
+
+	if name != "" {
+		query["theaterName"] = bson.M{"$regex": name, "$options": "i"}
+	}
+
+	if place != "" {
+		query["place"] = bson.M{"$regex": place, "$options": "i"}
+	}
+
+	cursor, err := collection.Find(ctx, query)
+	if err != nil {
+		// Log and return the error if there is a database error
+		log.Printf("Failed to find theaters: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the results into a slice of Theater structs
+	if err = cursor.All(ctx, &theaters); err != nil {
+		// Log and return the error if there is an issue with decoding
+		log.Printf("Failed to decode theaters: %v", err)
+		return nil, err
+	}
+
+	if len(theaters) == 0 {
+		// Return a custom error message if no documents are found
+		return theaters, nil
+	}
+
+	return theaters, nil
+}
+
+
+func FindTheaterByName(name string) (schemas.Theater, error) {
+	collection := GetTheaterCollection()
+	var theater schemas.Theater
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := collection.FindOne(ctx, bson.M{"theaterName": name}).Decode(&theater)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Return a custom error message if no document is found
+			return schemas.Theater{}, fmt.Errorf("theater with Id %s not found", name)
+		}
+		// Log and return the error if there is a database error
+		log.Printf("Failed to find theater: %v", err)
+		return schemas.Theater{}, err
+	}
+
+	return theater, nil
+}

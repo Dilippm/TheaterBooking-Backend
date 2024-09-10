@@ -5,11 +5,13 @@ import (
 	"log"
 	"time"
 "fmt"
+"strconv"
 	"github.com/dilippm92/bookingapplication/config"
 	"github.com/dilippm92/bookingapplication/models/schemas"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // get user collection
@@ -129,4 +131,128 @@ if err != nil {
 	}
 
 	return user, nil
+}
+
+// get owner ids by role
+func GetOwnerIds()([]schemas.User,error){
+	collection := GetUserCollection()
+	var users []schemas.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Define the query to filter users by role "owner"
+	filter := bson.M{"role": "owner"}
+
+	// Define the projection to include only the _id and username fields
+	projection := bson.M{"_id": 1, "username": 1}
+
+	// Perform the query
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(projection))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Iterate through the cursor and decode each document into the user slice
+	for cursor.Next(ctx) {
+		var user schemas.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+
+func UpdateWallet(price string)(*mongo.UpdateResult, error){
+	collection := GetUserCollection()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Convert price to float64
+	priceFloat, err := strconv.ParseFloat(price, 64)
+	
+	if err != nil {
+		return nil, fmt.Errorf("invalid price format: %v", err)
+	}
+
+	// Find user with role "admin"
+	filter := bson.M{"role": "admin"}
+	
+	// Find the current wallet value
+	var user struct {
+		Wallet float64 `bson:"wallet"`
+	}
+	err = collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("failed to find user: %v", err)
+	}
+	
+	// Calculate new wallet value
+	newWalletValue := user.Wallet + (priceFloat * 0.2)
+
+	// Update the wallet field with the new value
+	update := bson.M{
+		"$set": bson.M{"wallet": newWalletValue},
+	}
+
+	// Perform the update
+	result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		return nil, fmt.Errorf("update failed: %v", err)
+	}
+
+	return result, nil
+}
+
+
+func UpdateWalletByUserId(id string, price string) (*mongo.UpdateResult, error) {
+	collection := GetUserCollection()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Convert price to float64
+	priceFloat, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid price format: %v", err)
+	}
+
+
+	// Convert string ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid object ID format: %v", err)
+	}
+
+	// Find the current wallet value
+	var user struct {
+		Wallet float64 `bson:"wallet"`
+	}
+	filter := bson.M{"_id": objectID}
+	err = collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return nil, fmt.Errorf("failed to find user: %v", err)
+	}
+	
+	// Calculate new wallet value
+	newWalletValue := user.Wallet + (priceFloat * 0.8)
+	
+	// Update the wallet field with the new value
+	update := bson.M{
+		"$set": bson.M{"wallet": newWalletValue},
+	}
+
+	// Perform the update
+	result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		return nil, fmt.Errorf("update failed: %v", err)
+	}
+
+	return result, nil
 }

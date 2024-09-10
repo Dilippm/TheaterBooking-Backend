@@ -7,6 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
+	github.com/stripe/stripe-go v70.15.0+incompatible
 	go.mongodb.org/mongo-driver v1.16.1
 	golang.org/x/crypto v0.26.0
 )

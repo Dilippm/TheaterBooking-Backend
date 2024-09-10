@@ -12,6 +12,7 @@ var (
 	PORT      string
 	MONGO_URI string
 	JWT_SECRET_KEY string
+	STRIPE_KEY string
 )
 
 func init() {
@@ -25,4 +26,5 @@ func init() {
 	PORT = os.Getenv("PORT")
 	MONGO_URI = os.Getenv("MONGODB_URI")
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
+	STRIPE_KEY = os.Getenv("STRIPE_KEY")
 }

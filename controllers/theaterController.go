@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
+"log"
 	"github.com/dilippm92/bookingapplication/models/queries"
 	"github.com/dilippm92/bookingapplication/models/schemas"
 	"github.com/gin-gonic/gin"
@@ -130,4 +130,40 @@ func GetSpecificTheaterByid(c *gin.Context){
 	}
 
 	c.JSON(http.StatusOK, theaters)
+}
+
+// function to get theater details with given movie  id or theater name or place
+func GetTheaterByQuery(c *gin.Context) {
+    // Extract query parameters
+    name := c.Query("name")
+    place := c.Query("place")
+    id := c.Query("id")
+
+    // Call the service layer to get the theater
+    theater, err := queries.GetTheatersByNamePlaceId(name, place, id)
+    if err != nil {
+        // Check if the error is a not found error or another type of error
+        if err.Error() == "theater with name or place not found" {
+            c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        } else {
+            // Log and return internal server error
+            log.Printf("Error fetching theater: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while fetching the theater"})
+        }
+        return
+    }
+
+    // Fetch the movie by its ID
+    movie, err := queries.FindMovieById(id)
+    if err != nil {
+        log.Printf("Error fetching movie: %v", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while fetching the movie"})
+        return
+    }
+
+    // Return both theater and movie data as a combined response
+    c.JSON(http.StatusOK, gin.H{
+        "theater": theater,
+        "movie":   movie,
+    })
 }
