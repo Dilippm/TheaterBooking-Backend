@@ -1,7 +1,7 @@
 package controllers
 
 import (
-
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -123,4 +123,20 @@ bookings, err := queries.GetAllUserBookings(user)
 	}
 
 	c.JSON(http.StatusOK, bookings)
+}
+
+
+// function to get  a single movie details
+func GetBookings(c *gin.Context){
+	time := c.Param("time")
+	date:= c.Param("date")
+	fmt.Println("dat:",date)
+	fmt.Println("time:",time)
+	movie, err := queries.GetBookingByTimeAndDate(date,time)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch bookings"})
+		return
+	}
+fmt.Println(movie)
+	c.JSON(http.StatusOK, movie)
 }
