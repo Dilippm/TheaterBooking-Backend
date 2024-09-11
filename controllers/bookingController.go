@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+
 	"net/http"
 	"strconv"
 
@@ -116,7 +116,7 @@ Price: bookingInput.Price,
 func GetUserBookings (c *gin.Context){
 user:= c.Param("id")
 bookings, err := queries.GetAllUserBookings(user)
-fmt.Println(bookings)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch bookings"})
 		return

@@ -8,4 +8,5 @@ func MainRoutes(router *gin.Engine){
 	Adminroutes(apiGroup)
 	Reservationroutes(apiGroup)
 	Reportroutes(apiGroup)
+	Analyticsroutes(apiGroup)
 }

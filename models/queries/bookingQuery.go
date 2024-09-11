@@ -112,3 +112,39 @@ if err := cursor.Err(); err != nil {
 // Return the results
 return bookings, nil
 }
+
+func GetAllBookingsAdmin()([]schemas.Booking,error){
+	collection:= GetBookingCollection()
+	var bookings []schemas.Booking
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	// find all bookings having user matching the id provided
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Failed to execute query: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	// Iterate over the cursor and decode each document into a booking struct
+	for cursor.Next(ctx) {
+		var booking schemas.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			log.Printf("Failed to decode booking: %v", err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+
+	// Check for any errors during cursor iteration
+	if err := cursor.Err(); err != nil {
+		log.Printf("Cursor error: %v", err)
+		return nil, err
+	}
+
+	// If no theaters were found, return a custom error
+	if len(bookings) == 0 {
+		return nil, fmt.Errorf("no theaters found ")
+	}
+
+	return bookings, nil
+}
