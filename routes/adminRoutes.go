@@ -13,6 +13,6 @@ func Adminroutes(routerGroup *gin.RouterGroup){
 		adminGroup.GET("/get_movie_details/:id",middlewares.JwtTokenVerify(),controllers.GetMovieById)
 		adminGroup.PUT("/update_movie/:id",middlewares.JwtTokenVerify(),controllers.UpdateMovie)
 		adminGroup.GET("/get_latest_movies",controllers.GetLatestMovies)
-		
+		adminGroup.DELETE("/delete_movie/:id",middlewares.JwtTokenVerify(),controllers.DeleteMOvieById)
 	}
 }

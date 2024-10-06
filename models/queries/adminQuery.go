@@ -186,3 +186,31 @@ func GetLatestMovies() ([]schemas.Movie, error) {
 
 	return movies, nil
 }
+
+// delete movie by id 
+
+func DeleteMovie(id string) (int64, error) {
+    collection := GetMovieCollection() // Assuming this function gets the movie collection
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+
+    // Convert string ID to ObjectID
+    objectID, err := primitive.ObjectIDFromHex(id)
+    if err != nil {
+        return 0, fmt.Errorf("invalid ID format: %v", err)
+    }
+
+    // Delete the movie from the collection
+    deleteResult, err := collection.DeleteOne(ctx, bson.M{"_id": objectID})
+    if err != nil {
+        return 0, fmt.Errorf("failed to delete movie: %v", err)
+    }
+
+    // Check if any document was deleted
+    if deleteResult.DeletedCount == 0 {
+        return 0, fmt.Errorf("no movie found with ID: %s", id)
+    }
+
+    // Return the count of deleted documents
+    return deleteResult.DeletedCount, nil
+}
