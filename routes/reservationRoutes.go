@@ -18,5 +18,6 @@ func Reservationroutes(routerGroup *gin.RouterGroup){
 		bookingGroup.POST("/create-payment-intent",controllers.CreatePaymentIntent)
 		bookingGroup.POST("/add_booking",controllers.AddBooking)
 		bookingGroup.GET("/user_bookings/:id",controllers.GetUserBookings)
+		bookingGroup.GET("/get_booking/:time/:date",middlewares.JwtTokenVerify(),controllers.GetBookings)
 	}
 }

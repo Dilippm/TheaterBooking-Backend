@@ -209,3 +209,27 @@ func FindTheaterByName(name string) (schemas.Theater, error) {
 
 	return theater, nil
 }
+
+
+//find theater by movie id
+
+func FindtheaterBymovieId (id string)(schemas.Theater,error){
+	collection := GetTheaterCollection()
+	var theater schemas.Theater
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := collection.FindOne(ctx, bson.M{"movie": id}).Decode(&theater)
+	
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Return a custom error message if no document is found
+			return schemas.Theater{},nil
+		}
+		// Log and return the error if there is a database error
+		log.Printf("Failed to find theater: %v", err)
+		return schemas.Theater{}, err
+	}
+
+	return theater, nil
+}

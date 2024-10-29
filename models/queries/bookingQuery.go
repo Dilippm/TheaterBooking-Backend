@@ -112,3 +112,91 @@ if err := cursor.Err(); err != nil {
 // Return the results
 return bookings, nil
 }
+
+func GetAllBookingsAdmin()([]schemas.Booking,error){
+	collection:= GetBookingCollection()
+	var bookings []schemas.Booking
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	// find all bookings having user matching the id provided
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Failed to execute query: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	// Iterate over the cursor and decode each document into a booking struct
+	for cursor.Next(ctx) {
+		var booking schemas.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			log.Printf("Failed to decode booking: %v", err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+
+	// Check for any errors during cursor iteration
+	if err := cursor.Err(); err != nil {
+		log.Printf("Cursor error: %v", err)
+		return nil, err
+	}
+
+	// If no theaters were found, return a custom error
+	if len(bookings) == 0 {
+		return nil, fmt.Errorf("no theaters found ")
+	}
+
+	return bookings, nil
+}
+
+
+func GetBookingByTimeAndDate(dateStr, timeStr string) ([]schemas.Booking, error) {
+	collection := GetBookingCollection()
+	var bookings []schemas.Booking
+
+	// Parse the timeStr into a time.Time object
+	// parsedTime, err := time.Parse(time.RFC3339, timeStr)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to parse time: %v", err)
+	// }
+
+	// Create a filter for the date and time
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Create a query to find documents matching both date and time
+	filter := bson.M{
+		"date": bson.M{
+			"$eq": dateStr,
+		},
+		"time": bson.M{
+			"$eq": timeStr,
+		},
+	}
+
+	// Use Find to get all matching documents
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		log.Printf("Failed to find bookings: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the results into the reservations slice
+	for cursor.Next(ctx) {
+		var booking schemas.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			log.Printf("Failed to decode booking: %v", err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+
+	// Check if any error occurred during iteration
+	if err := cursor.Err(); err != nil {
+		log.Printf("Cursor iteration error: %v", err)
+		return nil, err
+	}
+
+	return bookings, nil
+}

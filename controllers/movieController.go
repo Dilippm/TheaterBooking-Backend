@@ -137,3 +137,25 @@ func GetLatestMovies(c *gin.Context){
 
 	c.JSON(http.StatusOK, movies)
 }
+
+// function to delete a movie
+func DeleteMOvieById(c *gin.Context){
+	id := c.Param("id")
+	theater, err := queries.FindtheaterBymovieId(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete movie"})
+		return
+	}
+	// Check if the theater exists and if it contains the movie
+	if (theater.Movie == id) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Movie already in theater list, can't delete"})
+		return
+	}
+	count,err:= queries.DeleteMovie(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to delete movie"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Movie deleted successfully","count":count})
+}
