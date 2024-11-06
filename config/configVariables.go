@@ -9,6 +9,7 @@ import (
 
 // Exported environment variables
 var (
+	ENV       string
 	PORT      string
 	MONGO_URI string
 	JWT_SECRET_KEY string
@@ -17,14 +18,15 @@ var (
 
 func init() {
 	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
+	if os.Getenv("ENV") == "development" {
+		if err := godotenv.Load(); err != nil {
+			log.Println("Error loading .env file; using environment variables")
+		}
 
 	// Set environment variables
 	PORT = os.Getenv("PORT")
 	MONGO_URI = os.Getenv("MONGODB_URI")
 	JWT_SECRET_KEY = os.Getenv("JWT_SECRET_KEY")
 	STRIPE_KEY = os.Getenv("STRIPE_KEY")
+	}
 }
