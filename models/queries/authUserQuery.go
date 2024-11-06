@@ -14,6 +14,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type UserResponse struct {
+	ID       string `json:"id" bson:"_id"`       // Adjust the field tag as needed
+	Username string `json:"username" bson:"username"`
+	Role     string `json:"role" bson:"role"`
+	UserImage string `json:"userimage" bson:"userimage"`
+}
 // get user collection
 func GetUserCollection()*mongo.Collection{
 	if config.MongoClient == nil{
@@ -255,4 +261,54 @@ func UpdateWalletByUserId(id string, price string) (*mongo.UpdateResult, error) 
 	}
 
 	return result, nil
+}
+
+// GetChatUsers retrieves users who are either "owner" or "admin", excluding the user with the specified ID
+func GetChatUsers(id string) ([]schemas.User, error) {
+	
+	collection := GetUserCollection()
+	var users []schemas.User
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Convert string ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	// Define the query to filter users by role "owner" or "admin", excluding the specified user ID
+	filter := bson.M{
+		"$or": []bson.M{
+			{"role": "owner"},
+			{"role": "admin"},
+		},
+		"_id": bson.M{"$ne": objectID}, // Exclude the user with the specified ObjectID
+	}
+
+	// Define the projection to include only the _id, username, role, and userimage fields
+	projection := bson.M{"_id": 1, "username": 1, "role": 1, "userimage": 1}
+
+	// Perform the query
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(projection))
+	if err != nil {
+		return nil, err // Return the error if the query fails
+	}
+	defer cursor.Close(ctx)
+
+	// Decode the cursor results into the users slice
+	for cursor.Next(ctx) {
+		var user schemas.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err // Return the error if decoding fails
+		}
+		users = append(users, user)
+	}
+
+	// Check for cursor errors
+	if err := cursor.Err(); err != nil {
+		return nil, err // Return the error if there was an issue with the cursor
+	}
+
+	return users, nil // Return the list of users
 }
