@@ -17,7 +17,7 @@ func main()  {
 	router := gin.New()
 	 // CORS configuration
 	 router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:5173"}, // Allow requests from this origin
+        AllowOrigins:     []string{"https://hogwartsseats.netlify.app"}, // Allow requests from this origin
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Allow these methods
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"}, // Allow these headers
         ExposeHeaders:    []string{"Content-Length"},
